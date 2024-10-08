@@ -213,7 +213,7 @@ public class EditableList implements Editable
 	}
 	/* 获取每个文本块的标准容量 */
 	int getBlockEnsureCount(){
-		return MaxCount;
+		return MaxCount - ReserveCount;
 	}
 	
 	/**
@@ -325,19 +325,19 @@ public class EditableList implements Editable
 	private void insertForBlocks(final int i, final int index, CharSequence tb, int tbStart, int tbEnd)
 	{
 		//先插入文本，让在此范围内的span进行扩展和修正
-		//注意必须立即刷新，因为插入的位置不是末尾时，不连续的范围将错误传递
+		//注意必须立即发送事件，因为插入的位置不是末尾时，不连续的范围将错误传递
+		final Editable dstBlock = mBlocks[i];
 		repalceWithSpans(i, index, index, tb, tbStart, tbEnd, true, false);
 
 		//再检查文本块的内容是否超出MaxCount
-		final Editable dstBlock = mBlocks[i];
-		final int srcLen = dstBlock.length();	
-		if(srcLen > this.MaxCount)
+		final int newLen = dstBlock.length();	
+		if(newLen > this.MaxCount)
 		{								   
 			//将超出的文本截取出来，需要多预留一些空间以待之后使用
 			final int keepLen = this.MaxCount - ReserveCount;
-			final int overLen = srcLen - keepLen;
-			Spanned subText = (Spanned) dstBlock.subSequence(keepLen, srcLen);
-			repalceWithSpans(i, keepLen, srcLen, "", 0, 0, true, false);
+			final int overLen = newLen - keepLen;
+			Spanned subText = (Spanned) dstBlock.subSequence(keepLen, newLen);
+			repalceWithSpans(i, keepLen, newLen, "", 0, 0, true, false);
 
 			//将超出的文本分发到之后的文本块中，并保证它们的长度不超出MaxCount
 			if(i+1 < mBlockSize && mBlocks[i+1].length()+overLen <= this.MaxCount){
@@ -351,10 +351,14 @@ public class EditableList implements Editable
 				//如果下个文本块无法容纳超出的文本，必须分发，分发时不需要修正不连续的span，也不需要修正重复span
 				//就像是将修正好的文本单独拷贝到新的文本块中，由于没有重复的span，span整体位置保持不变
 				dispatchTextBlock(i+1, subText, 0, overLen, true);
-				if(overLen > this.MaxCount * 2){
-					//太长的文本插入时，需要调整原文本块内部的空间
-					adjustBlock(i);
-				}
+			}
+			//太长的文本插入时，需要调整原文本块内部的空间
+			//当文本块的长度为newLen时，那么它的内部文本数组长度最大为newLen * 2，
+			//考虑到初始文本块长度为ensureCount，它的内部数组长度为ensureCount * 2，
+			//那么文本块长度只要最坏不达到ensureCount * 2，内部数组就不会增长为ensureCount * 4
+			//因此当一个文本块内部数组长度最坏增长至ensureCount * 4时，将它调整为ensureCount * 2
+			if(newLen >= keepLen * 2){ //same as (newLen * 2 >= ensureCount * 4)
+				adjustBlock(i);
 			}
 		}
 	}
@@ -566,14 +570,20 @@ public class EditableList implements Editable
 			int nst = copy.getSpanStart(span);
 			nst = nst<start ? 0 : nst-start;
 			if(ost != nst){
-				//此时被插入的文本必然在文本块开头，因此跨越多个文本块的span必然衔接在开头或末尾，已在correctSpan时修正的不用再次修正
-				//另外的，完全被截取至单独的下个文本块且重复的span没有被correctSpan修正，应将它衔接在上次的位置之前，spanEnd已在插入时修正
+				//此时被插入的文本必然在文本块开头，因此跨越多个文本块的span必然衔接在开头或末尾，已在fixDiscontinuousSpans时修正的不用再次修正
+				//另外的，完全被截取至单独的下个文本块且重复的span没有被fixDiscontinuousSpans修正，应将它衔接在上次的位置之前，spanEnd已在插入时修正
 				block.setSpan(span,nst,block.getSpanEnd(span),block.getSpanFlags(span));
 			}
 		}
 	}
 	
-	/* 检查该span是否是无效的span */
+	/**
+	 * 检查该span是否是无效的span
+	 * 只能设置标志为SPAN_EXCLUSIVE_EXCLUSIVE的span，因为其它标志的span边界会扩展而出现无法预料的行为
+	 * 另一个原因是replace只能先删再插，所以无法保留删除范围内的span，而其它标志的span可能会保留在文本块而出现异常
+	 * 也不能设置TextWatcher和SpanWatcher，因为它们在文本块被修改时会发送错误的事件，并且影响性能
+	 * NoCopySpan在某些情况下不能从一个文本块中拷贝到另一个文本块中，因此为了避免异常也不能设置
+	 */
 	private static boolean isInvalidSpan(Object span, int start, int end, int flags){
 		return start == end || (flags & SPAN_EXCLUSIVE_EXCLUSIVE) != SPAN_EXCLUSIVE_EXCLUSIVE
 		       || span instanceof TextWatcher || span instanceof SpanWatcher || span instanceof NoCopySpan;

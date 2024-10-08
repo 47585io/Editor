@@ -15,6 +15,8 @@ import android.content.res.*;
 public class ViewPager extends LinearLayout
 {
 	private static final float mTouchSlop = 20;
+	//使用栈存储所有的手指，每有手指落下就加入栈顶，手指抬起就将它从栈中移除
+	//滑动时始终跟踪栈顶的手指，当所有手指抬起，则终止本次滑动
 	private float mLastMotionX, mLastMotionY;
 	private int mActivePointerId;
 	
@@ -28,7 +30,7 @@ public class ViewPager extends LinearLayout
 	}
 	public ViewPager(Context cont, AttributeSet attrs){
 		super(cont, attrs);
-		init(cont);TabHost g;
+		init(cont);
 	}
 	private void init(Context cont){
 		mCurrentIndex = -1;
@@ -181,11 +183,15 @@ public class ViewPager extends LinearLayout
 				// 记录下当前的触摸点
 				mLastMotionX = event.getX();
 				mLastMotionY = event.getY();
+				mActivePointerId = event.getPointerId(0);
 				break;
 			case MotionEvent.ACTION_MOVE:
 				// 计算滑动的方向
-				float deltaX = event.getX() - mLastMotionX;
-				float deltaY = event.getY() - mLastMotionY;
+				int activePointerIndex = event.findPointerIndex(mActivePointerId);
+				float x = event.getX(activePointerIndex);
+				float y = event.getY(activePointerIndex);
+				float deltaX = x - mLastMotionX;
+				float deltaY = y - mLastMotionY;
 				float speedX = Math.abs(deltaX);
 				float speedY = Math.abs(deltaY);
 				if ((getOrientation() == HORIZONTAL && speedX > mTouchSlop && speedX > speedY && canScrollHorizontally(-(int)deltaX)) || 
@@ -194,6 +200,8 @@ public class ViewPager extends LinearLayout
 					//纵向布局时，手指上下移速较快，并且上下移速大于左右移速，并且自己可以上下滚动，拦截事件
 					return true;
 				}
+				mLastMotionX = x;
+				mLastMotionY = y;
 				break;
 		}
 		return super.onInterceptTouchEvent(event);

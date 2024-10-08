@@ -115,15 +115,16 @@ public class WorkBench extends Activity implements Runnable
 			mEditorPages.getChildAt(i).requestFocus();
 		}
 		
-		public void commitFile(File file)
+		public void commitFile(final File file)
 		{
-			String label = file.getPath();
+			final String label = file.getPath();
 			int index = mEditorPages.findViewByLabel(label);
 			if(index < 0){
+				final Editor editor = creatEditor(file);
 				ArrayAdapter<String> adapter = (ArrayAdapter) mEditorList.getAdapter();
 				adapter.add(file.getName());
 				adapter.notifyDataSetChanged();
-				mEditorPages.addPage(new ViewPager.PageData(creatEditor(file), label, null));
+				mEditorPages.addPage(new ViewPager.PageData(editor, label, null));
 			}else{
 				mEditorPages.tabPage(index);
 			}

@@ -100,6 +100,7 @@ public class BlockLayout extends BaseLayout implements BlockListener
 	public void afterBlocksChanged(int start, int before, int after)
 	{
 		//刷新每个文本块的起始行数
+		//文本变化后数组长度应该大于0，因为数组只会增长而不会缩小
 		mBlockStartLine[0] = 0;
 		for(int i = 1; i < mBlockSize; ++i){
 			mBlockStartLine[i] = mBlockStartLine[i-1] + mBlocks[i-1].lineCount;
