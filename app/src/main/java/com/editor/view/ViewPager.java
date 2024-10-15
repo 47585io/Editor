@@ -194,8 +194,8 @@ public class ViewPager extends LinearLayout
 				float deltaY = y - mLastMotionY;
 				float speedX = Math.abs(deltaX);
 				float speedY = Math.abs(deltaY);
-				if ((getOrientation() == HORIZONTAL && speedX > mTouchSlop && speedX > speedY && canScrollHorizontally(-(int)deltaX)) || 
-					(getOrientation() == VERTICAL && speedY > mTouchSlop && speedX < speedY && canScrollVertically(-(int)deltaY))) {
+				if ((getOrientation() == HORIZONTAL && speedX > mTouchSlop && speedX > speedY * 4 && canScrollHorizontally(-(int)deltaX)) || 
+					(getOrientation() == VERTICAL && speedY > mTouchSlop && speedY > speedX * 4 && canScrollVertically(-(int)deltaY))) {
 					//横向布局时，手指左右移速较快，并且左右移速大于上下移速，并且自己可以左右滚动，拦截事件
 					//纵向布局时，手指上下移速较快，并且上下移速大于左右移速，并且自己可以上下滚动，拦截事件
 					return true;

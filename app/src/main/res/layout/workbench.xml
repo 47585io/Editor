@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<com.editor.view.SplitterLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical"
+	app:touchSeparatorEnabled="true"
 	android:id="@+id/WorkBench">
 	
 	<RelativeLayout
@@ -37,7 +38,7 @@
 			android:layout_height="wrap_content"
 			android:layout_alignParentRight="true"
 			android:layout_centerVertical="true"
-			android:gravity="center_vertical">
+			android:gravity="center_vertical"
 			android:id="@+id/ButtonBar">
 			
 			<Button
@@ -81,7 +82,8 @@
 		app:maxSeparator="1.0"
 		app:touchSeparatorEnabled="true"
 		app:autoMoveSeparator="true"
-		app:autoChangeOrientation="true">
+		app:autoChangeOrientation="true"
+		android:id="@+id/Body">
 
 		<com.editor.view.ViewPager
 			android:layout_width="match_parent"
@@ -97,4 +99,4 @@
 		
 	</com.editor.view.SplitterLayout>
 
-</LinearLayout>
+</com.editor.view.SplitterLayout>

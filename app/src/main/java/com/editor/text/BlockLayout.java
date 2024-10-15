@@ -1,10 +1,13 @@
 package com.editor.text;
 import android.text.*;
 import com.editor.base.array.*;
-import java.util.*;
-import com.editor.text.BlockLayout.*;
-import com.editor.text.BaseLayout.*;
 
+/**
+ * 建立在分块文本容器上的Layout，
+ * 通过记录每个文本块的行和宽度信息来节省测量时间，
+ * 监听文本块的变化并调整该文本块的信息，分块可以尽量少地测量文本，
+ * 优化了BaseLayout的部分方法，例如getOffsetHorizontal
+ */
 public class BlockLayout extends BaseLayout implements BlockListener
 {
 	private int mLineCount;        //换行符的数量
@@ -42,11 +45,7 @@ public class BlockLayout extends BaseLayout implements BlockListener
 		if(line < 1) return 0;
 		if(line > mLineCount) return getText().length();
 		
-		//先找到第line个FN所在的块，也就是最后一个mStartLines为line - 1的块
-		//文本块的起始行数实际上是之前的文本块的行数(例如第二块文本块的起始行数就是第一块的行数)
-		//这意味着，要寻找指定的换行所在的文本块，需要先找到它等于某个文本块的起始行数的文本块，此换行应该在它之前的文本块
-		//为了避免单行文本太长跨越了多个文本块，导致很多文本块的startLine相同，所以这里应该找到最后面的文本块，也就是换行符的那个
-		int id = ArrayUtils.findRangeContainingIndex(mBlockStartLine, mBlockSize, line - 1);
+		int id = getLineAtBlock(line);
 		int startLine = mBlockStartLine[id];
 		int startIndex = ((EditableList)getText()).getBlockStart(id);
 		int toLine = line - startLine;
@@ -342,11 +341,14 @@ public class BlockLayout extends BaseLayout implements BlockListener
 			}
 		}
 	}
-	/* 获取第line个换行符所在的文本块 */
-	private int getLineAtBlock(int line)
-	{
-		if(line < 1) return 0;
-		if(line > mLineCount) return mBlockSize - 1;
+	
+	/**
+	 * 获取第line个换行符所在的文本块，也就是最后一个mStartLines为line - 1的块
+	 * 文本块的起始行数实际上是之前的文本块的行数(例如第二块文本块的起始行数就是第一块的行数)
+	 * 这意味着，要寻找指定的换行所在的文本块，需要先找到它等于某个文本块的起始行数的文本块，此换行应该在它之前的文本块
+	 * 为了避免单行文本太长跨越了多个文本块，导致很多文本块的startLine相同，所以这里应该找到最后面的文本块，也就是换行符的那个
+	 */
+	private int getLineAtBlock(int line){
 		return ArrayUtils.findRangeContainingIndex(mBlockStartLine, mBlockSize, line - 1);
 	}
 
@@ -379,12 +381,19 @@ public class BlockLayout extends BaseLayout implements BlockListener
 			{
 				int blockStart = block.getLineBlockStart(line);
 				int blockEnd = block.getLineBlockEnd(text.length(), line);
-				int count = blockEnd - blockStart;
-				if (this.start + count > lineOff){
-					this.point += measureText(text, blockStart, blockStart+lineOff-this.start, getPaint());
+				float blockWidth = block.getLineBlockWidth(line);
+				int blockLength = blockEnd - blockStart;
+				
+				if (this.start + blockLength > lineOff){
+					int overLength = lineOff - this.start;
+					if (overLength <= blockLength / 2){
+						this.point += measureText(text, blockStart, blockStart+overLength, getPaint());
+					}else{
+						this.point = this.point + blockWidth - measureText(text, blockStart+overLength, blockEnd, getPaint());
+					}
 					return false;
 				}
-				joinBlock(blockStart, blockEnd, block.getLineBlockWidth(line));
+				joinBlock(blockStart, blockEnd, blockWidth);
 				return true;
 			}
 		};
@@ -404,6 +413,7 @@ public class BlockLayout extends BaseLayout implements BlockListener
 				int blockStart = block.getLineBlockStart(line);
 				int blockEnd = block.getLineBlockEnd(text.length(), line);
 				float blockWidth = block.getLineBlockWidth(line);
+				
 				if(this.point + blockWidth > horiz){
 					int offset = measureOffsetOpened(text, blockStart, blockEnd, this.point, horiz, getPaint());
 					this.start += offset - blockStart;

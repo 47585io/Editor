@@ -20,6 +20,10 @@ public class SplitterLayout extends LinearLayout
 	private boolean touchSeparatorEnabled;
 	private boolean autoMoveSeparator, autoChangeOrientation;
 	
+	private boolean isTouchOnSeparator, isInterceptGesture;
+	private float mLastMotionX, mLastMotionY;
+	private int mActivePointerId;
+	
 	public SplitterLayout(Context cont){
 		super(cont);
 	}
@@ -60,6 +64,9 @@ public class SplitterLayout extends LinearLayout
 	public void setSeparatorRange(float min, float max){
 		minSeparator = min;
 		maxSeparator = max;
+	}
+	public float getSeparator(){
+		return separator;
 	}
 	
 	public void moveSeparatorTo(float to){
@@ -136,9 +143,38 @@ public class SplitterLayout extends LinearLayout
 	}
 
 	@Override
-	public boolean onInterceptTouchEvent(MotionEvent ev){
+	public boolean onInterceptTouchEvent(MotionEvent event)
+	{
+		final int touchSlop = 0;
+		switch(event.getAction())
+		{
+			case MotionEvent.ACTION_DOWN:
+				mLastMotionX = event.getX();
+				mLastMotionY = event.getY();
+				mActivePointerId = event.getPointerId(0);
+				isInterceptGesture = true;
+				isTouchOnSeparator = isTouchOnSeparator(event) || false;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				// 计算滑动的方向
+				int activePointerIndex = event.findPointerIndex(mActivePointerId);
+				float x = event.getX(activePointerIndex);
+				float y = event.getY(activePointerIndex);
+				float speedX = Math.abs(x - mLastMotionX);
+				float speedY = Math.abs(y - mLastMotionY);
+				if ((getOrientation() == HORIZONTAL && speedX > touchSlop && speedX > speedY * 2) || 
+					(getOrientation() == VERTICAL && speedY > touchSlop && speedY > speedX * 2)) {
+					//横向布局时，手指左右移速较快，并且左右移速大于上下移速，拦截事件
+					//纵向布局时，手指上下移速较快，并且上下移速大于左右移速，拦截事件
+					//必须在开始时点击到了分隔轴，并且手指没有滚动子View
+					return isTouchOnSeparator && isInterceptGesture; 
+				}
+				mLastMotionX = x;
+				mLastMotionY = y;
+				break;
+		}
 		//如果手指点击到分隔轴，就拦截事件给自己
-		return (ev.getAction() == MotionEvent.ACTION_DOWN && isTouchOnSeparator(ev));
+		return super.onInterceptTouchEvent(event);
 	}
 
 	@Override
@@ -173,7 +209,7 @@ public class SplitterLayout extends LinearLayout
         int y = (int) event.getY();
         int width = getWidth();
         int height = getHeight();
-		float separatorInsets = 50;
+		float separatorInsets = 100;
 
         if (getOrientation() == VERTICAL) {
             float separatorPosition = height * separator;
@@ -188,7 +224,8 @@ public class SplitterLayout extends LinearLayout
     }
 
 	@Override
-	protected void onConfigurationChanged(Configuration newConfig){
+	protected void onConfigurationChanged(Configuration newConfig)
+	{
 		super.onConfigurationChanged(newConfig);
 		if(autoChangeOrientation){
 			setOrientationByConfiguration(newConfig);

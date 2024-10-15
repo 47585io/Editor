@@ -16,25 +16,43 @@ import com.editor.base.files.*;
 import com.editor.base.adapter.*;
 import android.widget.AdapterView.*;
 import com.parser.javaparser.*;
-import com.network.server.base.*;
 import com.parser.javaparser.base.*;
 import com.parser.javaparser.base.Token.*;
 import java.util.concurrent.*;
 
 /*
- " SpiltLayout在拖动轴时会重布局，此时ViewPager子元素的大小改变了，但是它的滚动没变
-
-*/
+ * SpiltLayout在拖动轴时会重布局，此时ViewPager子元素的大小改变了，但是它的滚动没变
+ * ViewPager和SpiltLayout必须合理拦截事件，比如点击长按不要拦截
+ * ViewPager和SpiltLayout都需要检查手势才能拦截，其中一项不满足立刻中断(柔性的检查就是每次都检查，只要满足了就拦截)
+ * 
+ * 为什么不禁状态栏？因为这会导致Title永远无法完全收起，很丑
+ * 为什么不禁导航栏？因为编辑时软键盘会重新抬起导航栏，没用
+ * 而且有时候禁用状态栏和导航栏后不好恢复，不同手机设计不同，有的手机禁掉后直接空出一片黑，还不如设置同样的主题色
+ * 而且又不是游戏，禁用状态栏和导航栏后不好操作，应该程序也需要监听返回键之类的
+ *
+ * 有些编辑器是标题加可滑动侧边栏，我是仿AIDE的标题加可滑动底部栏，因为EditorPager会左右滑动，不建议把这个手势抢了
+ * 侧边栏和底部栏本质上是一样的，只是切换页面方式不一样，侧边栏内容可仿vscode的左侧一列按扭对应一个个页面
+ * 底部栏是使用一个ViewPager来滑动每个页面，每个页面标题需列在顶部
+ * 最后为了节省空间，我额外让标题也可滑动
+ */
 
 public class WorkBench extends Activity implements Runnable
 {
+	private SplitterLayout mRoot;
+	
+	private RelativeLayout mTitle;
+	private Spinner mEditorList;
+	private LinearLayout mButtonBar;
+	
+	private SplitterLayout mBody;
+	private ViewPager mEditorPages;
+	private ViewPager mDownBar;
+	
+	private TitleManger titleManger;
 	private AbFileHandler fileHandler;
 	private AbEditorPageHandler pageHandler;
 	
-	private Spinner mEditorList;
 	private ListView mFileListView;
-	private ViewPager mEditorPages;
-	
 	private ExecutorService mExecutorService;
 
     @Override
@@ -42,20 +60,18 @@ public class WorkBench extends Activity implements Runnable
     {
         super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+		mExecutorService = Executors.newCachedThreadPool();
 		runOnUiThread(this);
     }
 
 	@Override
 	public void run()
 	{
-		setContentView(R.layout.workbench);
+		initViewTree();
 		fileHandler = new AbFileHandler();
 		pageHandler = new AbEditorPageHandler();
+		titleManger = new TitleManger();
 		
-		mExecutorService = Executors.newCachedThreadPool();
-		
-		mEditorList = findViewById(R.id.EditorList);
 		mEditorList.setAdapter(new ArrayAdapter(this, R.layout.text_list_item, R.id.list_item_text));
 		mEditorList.setOnItemSelectedListener(new OnItemSelectedListener(){
 
@@ -72,9 +88,36 @@ public class WorkBench extends Activity implements Runnable
 				}
 			});
 		
-		ViewPager p = findViewById(R.id.DownBar);
+		
 		mFileListView.setDivider(null);
-		p.addPage(new ViewPager.PageData(mFileListView, "", null));
+		mDownBar.addPage(new ViewPager.PageData(mFileListView, "FileList", null));
+		
+		mRoot.requestLayout();
+		mRoot.invalidate();
+	}
+	
+	private void initViewTree()
+	{
+		setContentView(R.layout.workbench);
+		mRoot = findViewById(R.id.WorkBench);
+		
+		mTitle = mRoot.findViewById(R.id.Title);
+		mEditorList = mTitle.findViewById(R.id.EditorList);
+		mButtonBar = mTitle.findViewById(R.id.ButtonBar);
+		
+		mBody = mRoot.findViewById(R.id.Body);
+		mEditorPages = mBody.findViewById(R.id.EditorPager);
+		mDownBar = mBody.findViewById(R.id.DownBar);
+	}
+	
+	private void configTitle()
+	{
+		
+	}
+	
+	private void creatDownBarPages()
+	{
+		
 	}
 
 	@Override
@@ -89,6 +132,7 @@ public class WorkBench extends Activity implements Runnable
 				| View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 		}*/
 		super.onConfigurationChanged(newConfig);
+		titleManger.changeOrenitation();
 	}
 	
 	public void test(Editable text){
@@ -278,4 +322,59 @@ public class WorkBench extends Activity implements Runnable
 			return icon;
 		}
 	}
+	
+	private class TitleManger
+	{
+		private boolean change;
+		private int titleHeight = -1;
+		private int oldParentHeight = -1;
+		private float oldParentBili;
+		
+		public TitleManger(){
+			View tilte = findViewById(R.id.Title);
+			tilte.measure(0, 0);
+			titleHeight = tilte.getMeasuredHeight();
+			mRoot.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
+
+					@Override
+					public void onGlobalLayout()
+					{
+						int measure = mRoot.getMeasuredHeight();
+						onMeasure(measure);
+					}
+				});
+		}
+		
+		public void onMeasure(int height)
+		{
+			if(oldParentHeight == -1){
+				oldParentHeight = height;
+				oldParentBili = (float)titleHeight / height;
+				mRoot.setSeparatorRange(0, oldParentBili);
+				mRoot.setSeparator(oldParentBili);
+			}else if(change){
+				float range = (float)titleHeight / height;
+				float self = oldParentHeight * oldParentBili;
+				float bili = self / height;
+				mRoot.setSeparatorRange(0, range);
+				mRoot.setSeparator(bili);
+				change = false;
+			}else{
+				oldParentHeight = height;
+				oldParentBili = mRoot.getSeparator();
+			}
+		}
+		
+		public void changeOrenitation(){
+			change = true; 
+		}
+	}
+	
+	private class DownBarPageCreator
+	{
+		private ListView mFileListView;
+		
+		
+	}
+	
 }

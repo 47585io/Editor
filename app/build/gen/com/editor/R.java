@@ -184,14 +184,16 @@ containing a value of this type.
         public static final int search=0x7f020012;
     }
     public static final class id {
-        public static final int DownBar=0x7f080007;
+        public static final int Body=0x7f080007;
+        public static final int ButtonBar=0x7f080005;
+        public static final int DownBar=0x7f080009;
         public static final int EditorList=0x7f080004;
-        public static final int EditorPager=0x7f080006;
+        public static final int EditorPager=0x7f080008;
         public static final int Title=0x7f080003;
         public static final int WorkBench=0x7f080002;
         public static final int list_item_icon=0x7f080000;
         public static final int list_item_text=0x7f080001;
-        public static final int workbenchSpinner=0x7f080005;
+        public static final int workbenchSpinner=0x7f080006;
     }
     public static final class layout {
         public static final int icon_text_list_item=0x7f030000;
