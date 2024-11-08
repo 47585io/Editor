@@ -619,7 +619,7 @@ public class EditableList implements Editable
 	
 	/**
 	 * 检查该span是否是无效的span
-	 * span的长度至少为1，这样删除文本的逻辑才正常，空文本无法设置任何span
+	 * span的长度至少为1，只有这样才能设置到文本块中，空文本无法设置任何span
 	 * 只能设置标志为SPAN_EXCLUSIVE_EXCLUSIVE的span，因为其它标志的span边界会扩展而出现无法预料的行为
 	 * 另一个原因是replace只能先删再插，所以无法保留删除范围内的span，而其它标志的span可能会保留在文本块而出现异常
 	 * 也不能设置TextWatcher和SpanWatcher，因为它们在文本块被修改时会发送错误的事件，并且影响性能
@@ -902,7 +902,7 @@ public class EditableList implements Editable
 	}
 	
 	/* 是否有span的端点正好处于文本中的指定位置 */
-	private static<T> boolean hasSpanPointAt(Spanned text, int offset, Class<T> kind)
+	private static <T> boolean hasSpanPointAt(Spanned text, int offset, Class<T> kind)
 	{
 		T[] spans = text.getSpans(offset, offset, kind);
 		for(int i = 0; i < spans.length; ++i){
@@ -1179,7 +1179,7 @@ public class EditableList implements Editable
 			startBlock = endBlock = null;
 		}
 		
-		/* 直接在最后添加一个新文本块 */
+		/* 直接在最后添加一个新文本块，允许添加重复的文本块，此时范围不会变化 */
 		public void add(Editable dstBlock)
 		{
 			if(startBlock == null){
@@ -1235,6 +1235,7 @@ public class EditableList implements Editable
 			if(startBlock == null){
 				return;
 			}
+			//找到span附着于文本块列表中的范围，并将span从范围内的这些文本块中移除
 			int start = mIndexOfBlocks.get(startBlock);
 			int end = mIndexOfBlocks.get(endBlock);
 			for(;start <= end; ++start){
