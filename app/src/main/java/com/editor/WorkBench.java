@@ -72,10 +72,10 @@ public class WorkBench extends Activity implements Runnable
 			sb.append("invalid");
 		}
 		EditableList sp = new EditableList(sb);
-		int[] spanStarts = new int[]{1024};
-		int[] spanEnds = new int[]{1025};
+		int[] spanStarts = new int[]{0};
+		int[] spanEnds = new int[]{5005};
 		setSpans(sp, spanStarts, spanEnds);
-		String log = nextSpans(sp, 1024, 1026);
+		String log = nextSpans(sp, -1, 5006, CharacterStyle.class);
 		Log.w("nextSpans", log);
     }
 	
@@ -85,12 +85,12 @@ public class WorkBench extends Activity implements Runnable
 		}
 	}
 	
-	private String nextSpans(Spanned sp, int start, int limit)
+	private String nextSpans(Spanned sp, int start, int limit, Class kind)
 	{
 		StringBuilder sb = new StringBuilder();
 		int next = start;
 		do{
-			next = sp.nextSpanTransition(next, limit, Object.class);
+			next = sp.nextSpanTransition(next, limit, kind);
 			sb.append(next);
 			sb.append(", ");
 		}while(next < limit);

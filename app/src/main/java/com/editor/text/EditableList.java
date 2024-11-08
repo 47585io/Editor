@@ -885,12 +885,12 @@ public class EditableList implements Editable
 			//第一个文本块应该从start-blockStart开始找(不包含start端点)，这包括start为负数时，可以从总文本的前面开始找
 			//如果有之后的文本块，则从-1开始找(包含0端点)
 			int next = block.nextSpanTransition(start-blockStart, limit-blockStart, kind);
-			if (next == 0 && !hasSpanPointAt(this, blockStart)){
+			if (next == 0 && !hasSpanPointAt(this, blockStart, kind)){
 				//如果有一个span附着于文本块开头但它并不是总文本中的端点(而是向前衔接的span)
 				//因此这里跳过它，继续寻找0之后的下个span的端点
 				next = block.nextSpanTransition(0, limit-blockStart, kind);
 			}
-			if (next < length || (next == length && hasSpanPointAt(this, blockStart+length))){
+			if (next < length || (next == length && hasSpanPointAt(this, blockStart+length, kind))){
 				//在文本块中找到了下个span的端点则返回它在文本块中的位置next，没有找到span会返回limit-blockStart
 				//不管找没找到，只有next < length，才能说明在自身中找到了span，或者没找到但已经到达limit，此时返回
 				//反之，如果next > length，则说明一定没找到，并且limit还在自己之后，还需要在之后的文本块中找
@@ -902,9 +902,9 @@ public class EditableList implements Editable
 	}
 	
 	/* 是否有span的端点正好处于文本中的指定位置 */
-	private static boolean hasSpanPointAt(Spanned text, int offset)
+	private static<T> boolean hasSpanPointAt(Spanned text, int offset, Class<T> kind)
 	{
-		Object[] spans = text.getSpans(offset, offset, Object.class);
+		T[] spans = text.getSpans(offset, offset, kind);
 		for(int i = 0; i < spans.length; ++i){
 			if(text.getSpanStart(spans[i]) == offset || text.getSpanEnd(spans[i]) == offset){
 				return true;
