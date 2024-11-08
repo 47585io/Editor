@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+	
+<resources>
+    <style name="AppTheme">
+		<item name="android:statusBarColor">@color/drak_color</item>
+		<item name="android:navigationBarColor">@color/drak_color</item>
+		<item name="android:textColor">@color/white_color</item>
+		<item name="android:textSize">@dimen/text_size</item>
+		<item name="android:popupBackground">@color/grey_color</item>
+		
+		<!-- Editor attrs default value -->
+		<item name="textColor">@color/white_color</item>
+		<item name="textSize">14dp</item>
+		<item name="cursorColor">#528bff</item>
+		<item name="selectionColor">#3f4859</item>
+		<item name="scrollBarColor">#90545963</item>
+		<item name="highlightScrollBarColor">#d0545963</item>
+		<item name="highlightLineColor">#343844</item>
+		<item name="lineNumberColor">#535c6e</item>
+		<item name="lineSpacing">1.15</item>
+		<item name="TabSize">4</item>
+	</style>
+</resources>

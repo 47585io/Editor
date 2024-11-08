@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.editor.view.SplitterLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical"
+	app:touchSeparatorEnabled="true"
+	android:id="@+id/WorkBench">
+	
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingTop="@dimen/middle_padding_size"
+		android:paddingBottom="@dimen/middle_padding_size"
+		android:background="@color/drak_color"
+		android:id="@+id/Title">
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_centerVertical="true"
+			android:gravity="center_vertical">
+			<ImageView
+				android:layout_width="50dp"
+				android:layout_height="50dp"
+				android:background="@drawable/ic_launcher"/>
+			<Spinner 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:popupBackground="@color/drak_color"
+				android:id="@+id/EditorList"/>
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentRight="true"
+			android:layout_centerVertical="true"
+			android:gravity="center_vertical"
+			android:id="@+id/ButtonBar">
+			
+			<Button
+				android:layout_width="@dimen/icon_size"
+				android:layout_height="@dimen/icon_size"
+				android:layout_marginRight="@dimen/middle_padding_size"
+				android:clickable="true"
+				android:background="@drawable/ic_l_undo_dark"/>
+			
+			<Button
+				android:layout_width="@dimen/icon_size"
+				android:layout_height="@dimen/icon_size"
+				android:layout_marginRight="@dimen/middle_padding_size"
+				
+				android:background="@drawable/ic_l_redo_dark"/>
+			
+			<Button
+				android:layout_width="@dimen/icon_size"
+				android:layout_height="@dimen/icon_size"
+				android:layout_marginRight="@dimen/middle_padding_size"
+				
+				android:background="@drawable/ic_l_edit_dark"/>
+			
+			<Spinner
+				android:layout_width="@dimen/icon_size"
+				android:layout_height="@dimen/icon_size"
+				android:id="@+id/workbenchSpinner"
+				android:background="@drawable/ic_l_more_dark"/>
+			
+		</LinearLayout>
+
+	</RelativeLayout>
+	
+
+	<com.editor.view.SplitterLayout
+		android:layout_width="match_parent"
+		android:layout_height="fill_parent"
+		android:orientation="vertical"
+		app:separator="0.6"
+		app:minSeparator="0.6"
+		app:maxSeparator="1.0"
+		app:touchSeparatorEnabled="true"
+		app:autoMoveSeparator="true"
+		app:autoChangeOrientation="true"
+		android:id="@+id/Body">
+
+		<com.editor.view.ViewPager
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:background="@color/grey_color"
+			android:id="@+id/EditorPager"/>
+
+		<com.editor.view.ViewPager
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:background="@color/drak_color"
+			android:id="@+id/DownBar"/>
+		
+	</com.editor.view.SplitterLayout>
+
+</com.editor.view.SplitterLayout>

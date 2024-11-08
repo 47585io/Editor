@@ -1,0 +1,11 @@
+# view AndroidManifest.xml #generated:25
+-keep class com.editor.WorkBench { <init>(...); }
+
+# view res/layout/workbench.xml #generated:2
+# view res/layout/workbench.xml #generated:76
+-keep class com.editor.view.SplitterLayout { <init>(...); }
+
+# view res/layout/workbench.xml #generated:88
+# view res/layout/workbench.xml #generated:94
+-keep class com.editor.view.ViewPager { <init>(...); }
+

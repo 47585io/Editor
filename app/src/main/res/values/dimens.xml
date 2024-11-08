@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<dimen name="text_size">16dp</dimen>
+	<dimen name="icon_size">32dp</dimen>
+	
+	<dimen name="item_icon_size">36dp</dimen>
+	<dimen name="item_text_size">12dp</dimen>
+	<dimen name="small_item_icon_size">24dp</dimen>
+	
+	<dimen name="small_padding_size">1.5dp</dimen>
+	<dimen name="middle_padding_size">5dp</dimen>
+	<dimen name="large_padding_size">20dp</dimen>
+	
+</resources>

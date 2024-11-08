@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"> 
+	<item android:state_pressed="true">
+		<layer-list>
+			<item>
+				<ripple android:color="#515257">
+					<item>
+						<shape android:shape="rectangle">
+							<solid android:color="#21242b"/> <!-- Add a solid color -->
+							<corners android:radius="20dp"/>
+						</shape>
+					</item>
+					
+				</ripple>
+			</item>
+			<item android:drawable="@drawable/ic_l_undo_dark"/>
+			
+		</layer-list>
+	</item>
+    <item android:drawable="@drawable/ic_l_undo_dark"/>
+</selector>

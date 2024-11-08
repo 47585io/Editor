@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<color name="drak_color">#21242b</color>
+	<color name="grey_color">#282c34</color>
+	<color name="light_grey_color">#3e4451</color>
+	
+	<color name="white_color">#abb2bf</color>
+	<color name="blue_color">#03a9f5</color>
+	
+</resources>
